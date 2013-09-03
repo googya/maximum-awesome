@@ -3,6 +3,10 @@ set nocursorline " don't highlight current line
 " keyboard shortcuts
 inoremap jj <ESC>
 
+:imap <leader>e <C-o>A
+:imap <leader>a <C-o>I
+:imap <leader>o <C-o>o
+
 " gui settings
 if (&t_Co == 256 || has('gui_running'))
   if ($TERM_PROGRAM == 'iTerm.app')
