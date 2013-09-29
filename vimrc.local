@@ -2,6 +2,12 @@ set nocursorline " don't highlight current line
 
 " keyboard shortcuts
 inoremap jj <ESC>
+:imap <leader>e <C-o>A
+:imap <leader>a <C-o>I
+:imap <leader>o <C-o>o
+:imap <leader>O <C-o>O
+
+
 
 :imap <leader>e <C-o>A
 :imap <leader>a <C-o>I
