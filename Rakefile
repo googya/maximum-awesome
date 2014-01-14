@@ -1,3 +1,5 @@
+ENV['HOMEBREW_CASK_OPTS'] = "--appdir=/Applications"
+
 def brew_install(package, *options)
   `brew list #{package}`
   return if $?.success?
@@ -9,6 +11,13 @@ def install_github_bundle(user, package)
   unless File.exist? File.expand_path("~/.vim/bundle/#{package}")
     sh "git clone https://github.com/#{user}/#{package} ~/.vim/bundle/#{package}"
   end
+end
+
+def brew_cask_install(package, *options)
+  output = `brew cask info #{package}`
+  return unless output.include?('Not installed')
+
+  sh "brew cask install #{package} #{options.join ' '}"
 end
 
 def step(description)
@@ -66,6 +75,31 @@ def link_file(original_filename, symlink_filename)
   ln_s original_path, symlink_path, :verbose => true
 end
 
+def unlink_file(original_filename, symlink_filename)
+  original_path = File.expand_path(original_filename)
+  symlink_path = File.expand_path(symlink_filename)
+  if File.symlink?(symlink_path)
+    symlink_points_to_path = File.readlink(symlink_path)
+    if symlink_points_to_path == original_path
+      # the symlink is installed, so we should uninstall it
+      rm_f symlink_path, :verbose => true
+      backups = Dir["#{symlink_path}*.bak"]
+      case backups.size
+      when 0
+        # nothing to do
+      when 1
+        mv backups.first, symlink_path, :verbose => true
+      else
+        $stderr.puts "found #{backups.size} backups for #{symlink_path}, please restore the one you want."
+      end
+    else
+      $stderr.puts "#{symlink_path} does not point to #{original_path}, skipping."
+    end
+  else
+    $stderr.puts "#{symlink_path} is not a symlink, skipping."
+  end
+end
+
 namespace :install do
   desc 'Update or Install Brew'
   task :brew do
@@ -73,6 +107,16 @@ namespace :install do
     unless system('which brew > /dev/null || ruby -e "$(curl -fsSL https://raw.github.com/mxcl/homebrew/go)"')
       raise "Homebrew must be installed before continuing."
     end
+  end
+
+  desc 'Install Homebrew Cask'
+  task :brew_cask do
+    step 'Homebrew Cask'
+    unless system('brew tap | grep phinze/cask > /dev/null') || system('brew tap phinze/homebrew-cask')
+      abort "Failed to tap phinze/homebrew-cask in Homebrew."
+    end
+
+    brew_install 'brew-cask'
   end
 
   desc 'Install The Silver Searcher'
@@ -85,12 +129,7 @@ namespace :install do
   task :iterm do
     step 'iterm2'
     unless app? 'iTerm'
-      system <<-SHELL
-        curl -L -o iterm.zip http://iterm2.googlecode.com/files/iTerm2-1_0_0_20120203.zip && \
-          unzip iterm.zip && \
-          mv iTerm.app /Applications && \
-          rm iterm.zip
-      SHELL
+      brew_cask_install 'iterm2'
     end
   end
 
@@ -116,17 +155,20 @@ namespace :install do
   task :macvim do
     step 'MacVim'
     unless app? 'MacVim'
-      system <<-SHELL
-        curl -L -o macvim.tbz https://github.com/downloads/b4winckler/macvim/MacVim-snapshot-64.tbz && \
-          bunzip2 macvim.tbz && tar xf macvim.tar && \
-          mv MacVim-snapshot-64/MacVim.app /Applications && \
-          rm -rf macvim.tbz macvim.tar MacVim-snapshot-64
-      SHELL
-      system ''
+      brew_cask_install 'macvim'
     end
 
-    bin_vim = File.expand_path('~/bin/vim')
-    FileUtils.mkdir_p(File.dirname(bin_vim))
+    bin_dir = File.expand_path('~/bin')
+    bin_vim = File.join(bin_dir, 'vim')
+    unless ENV['PATH'].split(':').include?(bin_dir)
+      puts 'Please add ~/bin to your PATH, e.g. run this command:'
+      puts
+      puts %{  echo 'export PATH="~/bin:$PATH"' >> ~/.bashrc}
+      puts
+      puts 'The exact command and file will vary by your shell and configuration.'
+    end
+
+    FileUtils.mkdir_p(bin_dir)
     unless File.executable?(bin_vim)
       File.open(bin_vim, 'w', 0744) do |io|
         io << <<-SHELL
@@ -141,13 +183,33 @@ exec /Applications/MacVim.app/Contents/MacOS/Vim "$@"
   task :vundle do
     step 'vundle'
     install_github_bundle 'gmarik','vundle'
-    sh 'vim -c "BundleInstall" -c "q" -c "q"'
+    sh '~/bin/vim -c "BundleInstall" -c "q" -c "q"'
   end
 end
 
+def filemap(map)
+  map.inject({}) do |result, (key, value)|
+    result[File.expand_path(key)] = File.expand_path(value)
+    result
+  end.freeze
+end
+
+COPIED_FILES = filemap(
+  'vimrc.local'         => '~/.vimrc.local',
+  'vimrc.bundles.local' => '~/.vimrc.bundles.local'
+)
+
+LINKED_FILES = filemap(
+  'vim'           => '~/.vim',
+  'tmux.conf'     => '~/.tmux.conf',
+  'vimrc'         => '~/.vimrc',
+  'vimrc.bundles' => '~/.vimrc.bundles'
+)
+
 desc 'Install these config files.'
-task :default do
+task :install do
   Rake::Task['install:brew'].invoke
+  Rake::Task['install:brew_cask'].invoke
   Rake::Task['install:the_silver_searcher'].invoke
   Rake::Task['install:iterm'].invoke
   Rake::Task['install:ctags'].invoke
@@ -155,22 +217,17 @@ task :default do
   Rake::Task['install:tmux'].invoke
   Rake::Task['install:macvim'].invoke
 
-  step 'git submodules'
-  sh 'git submodule update --init'
-
   # TODO install gem ctags?
   # TODO run gem ctags?
 
   step 'symlink'
-  link_file 'vim'                   , '~/.vim'
-  link_file 'tmux.conf'             , '~/.tmux.conf'
-  link_file 'vimrc'                 , '~/.vimrc'
-  link_file 'vimrc.bundles'         , '~/.vimrc.bundles'
-  unless File.exist?(File.expand_path('~/.vimrc.local'))
-    cp File.expand_path('vimrc.local'), File.expand_path('~/.vimrc.local'), :verbose => true
+
+  LINKED_FILES.each do |orig, link|
+    link_file orig, link
   end
-  unless File.exist?(File.expand_path('~/.vimrc.bundles.local'))
-    cp File.expand_path('vimrc.bundles.local'), File.expand_path('~/.vimrc.bundles.local'), :verbose => true
+
+  COPIED_FILES.each do |orig, copy|
+    cp orig, copy, :verbose => true unless File.exist?(copy)
   end
 
   # Install Vundle and bundles
@@ -195,3 +252,36 @@ task :default do
   puts "  Enjoy!"
   puts
 end
+
+desc 'Uninstall these config files.'
+task :uninstall do
+  step 'un-symlink'
+
+  # un-symlink files that still point to the installed locations
+  LINKED_FILES.each do |orig, link|
+    unlink_file orig, link
+  end
+
+  # delete unchanged copied files
+  COPIED_FILES.each do |orig, copy|
+    rm_f copy, :verbose => true if File.read(orig) == File.read(copy)
+  end
+
+  step 'homebrew'
+  puts
+  puts 'Manually uninstall homebrew if you wish: https://gist.github.com/mxcl/1173223.'
+
+  step 'iterm2'
+  puts
+  puts 'Run this to uninstall iTerm:'
+  puts
+  puts '  rm -rf /Applications/iTerm.app'
+
+  step 'macvim'
+  puts
+  puts 'Run this to uninstall MacVim:'
+  puts
+  puts '  rm -rf /Applications/MacVim.app'
+end
+
+task :default => :install

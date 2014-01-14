@@ -1,10 +1,12 @@
 " don't bother with vi compatibility
 set nocompatible
 
+" enable syntax highlighting
+syntax enable
+
 " configure Vundle
 filetype on " without this vim emits a zero exit status, later, because of :ft off
 filetype off
-filetype plugin indent on
 set rtp+=~/.vim/bundle/vundle/
 call vundle#rc()
 
@@ -14,8 +16,8 @@ if filereadable(expand("~/.vimrc.bundles"))
   source ~/.vimrc.bundles.local
 endif
 
-" enable syntax highlighting
-syntax enable
+" ensure ftdetect et al work by including this after the Vundle stuff
+filetype plugin indent on
 
 set autoindent
 set autoread                                                 " reload files when changed on disk, i.e. via `git checkout`
@@ -66,6 +68,9 @@ nmap <leader><space> :call whitespace#strip_trailing()<CR>
 nmap <leader>g :GitGutterToggle<CR>
 nmap <leader>c <Plug>Kwbd
 map <silent> <leader>V :source ~/.vimrc<CR>:filetype detect<CR>:exe ":echo 'vimrc reloaded'"<CR>
+
+" in case you forgot to sudo
+cmap w!! %!sudo tee > /dev/null %
 
 " plugin settings
 let g:ctrlp_match_window = 'order:ttb,max:20'
