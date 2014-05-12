@@ -19,18 +19,21 @@ inoremap jj <ESC>
 
 " gui settings
 if (&t_Co == 256 || has('gui_running'))
-  if ($TERM_PROGRAM == 'iTerm.app')
+
+  set guifont=Monaco:h16
+  " set background=dark
+  set cursorline " highlight current line
+  " colors moria
+  highlight CursorLine guibg=#003853 ctermbg=24 gui=none cterm=none
+
+  if ($TERM_PROGRAM == 'iTerm.app') 
     colorscheme solarized
   else
     colorscheme desert
   endif
 endif
 
-"set guifont=Monaco\ 14
-
-if has("gui_running")
-  set guifont=Monaco:h14
-endif
+" set guifont=Monaco:h15
 
 " Disambiguate ,a & ,t from the Align plugin, making them fast again.
 "
