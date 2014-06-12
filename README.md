@@ -21,6 +21,7 @@ peace-loving hippies. Built for Mac OS X.
 * `\\\` toggles current line comment
 * `\\` toggles visual selection comment lines
 * `vii`/`vai` visually select *in* or *around* the cursor's indent
+* `Vp`/`vp` replaces visual selection with default register *without* yanking selected text (works with any visual selection)
 * `,[space]` strips trailing whitespace
 * `<C-]>` jump to definition using ctags
 * `,l` begins aligning lines on a string, usually used as `,l=` to align assignments
@@ -44,8 +45,8 @@ You can adjust the size of the smaller panes in `tmux.conf` by lowering or incre
     rake
 
 ## Customize
-In your home directory, Maximum Awesome creates a `.vimrc.local` file where you can customize
-Vim to your heart’s content. However, we’d love to incorporate your changes and improve Vim
+In your home directory, Maximum Awesome creates `.vimrc.local`, `.vimrc.bundles.local` and `.tmux.conf.local` files where you can customize
+Vim and tmux to your heart’s content. However, we’d love to incorporate your changes and improve Vim and tmux
 for everyone, so feel free to fork Maximum Awesome and open some pull requests!
 
 ## Uninstall
