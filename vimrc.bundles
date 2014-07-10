@@ -42,4 +42,5 @@ Bundle 'wting/rust.vim'
 Bundle 'JuliaLang/julia-vim'
 Bundle 'jimenezrick/vimerl'
 Bundle 'epeli/slimux'
+Bundle 'elixir-lang/vim-elixir'
 
