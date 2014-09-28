@@ -43,4 +43,5 @@ Bundle 'JuliaLang/julia-vim'
 Bundle 'jimenezrick/vimerl'
 Bundle 'epeli/slimux'
 Bundle 'elixir-lang/vim-elixir'
+Bundle 'mxw/vim-jsx'
 
