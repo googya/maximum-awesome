@@ -1,3 +1,4 @@
 Plugin 'elixir-lang/vim-elixir'
 Plugin 'mxw/vim-jsx'
 Plugin 'fatih/vim-go'
+Plugin 'rust-lang/rust.vim'
