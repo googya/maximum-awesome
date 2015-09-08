@@ -21,7 +21,7 @@ inoremap jj <ESC>
 if (&t_Co == 256 || has('gui_running'))
 
   set guifont=Monaco:h16
-  " set background=dark
+  set background=light
   set cursorline " highlight current line
   " colors moria
   highlight CursorLine guibg=#003853 ctermbg=24 gui=none cterm=none
