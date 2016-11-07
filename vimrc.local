@@ -7,10 +7,6 @@ inoremap jj <ESC>
 :imap <leader>o <C-o>o
 :imap <leader>O <C-o>O
 
-:imap <leader>e <C-o>A
-:imap <leader>a <C-o>I
-:imap <leader>o <C-o>o
-
 " highlight search
 "set hlsearch
 "nmap <leader>hl :let @/ = ""<CR>
