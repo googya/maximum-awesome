@@ -6,3 +6,5 @@ Plugin 'phildawes/racer'
 Plugin 'cespare/vim-toml'
 Plugin 'rhysd/vim-crystal'
 Plugin 'w0rp/ale'
+Plugin 'eagletmt/ghcmod-vim'
+
