@@ -12,8 +12,7 @@ inoremap jj <ESC>
 "nmap <leader>hl :let @/ = ""<CR>
 
 " gui settings
-if (&t_Co == 256 || has('gui_running'))
-
+if has('gui_running')
   set guifont=Monaco:h16
   set background=dark
   set cursorline " highlight current line
